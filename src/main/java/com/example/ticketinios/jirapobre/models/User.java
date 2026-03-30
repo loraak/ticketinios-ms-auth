@@ -4,14 +4,19 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "usuarios") 
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID) 
+    @Column(columnDefinition = "uuid", updatable = false, nullable = false)
+    private UUID id; 
 
     @Column(unique = true, nullable = false)
     private String usuario;
@@ -41,14 +46,24 @@ public class User {
     @Column(name = "last_login")
     private LocalDateTime lastLogin;
 
-    // --- Getters y Setters ---
-    // (Es importante que los generes para todos los campos)
+    @Column(nullable = false)
+    private boolean activo = true;
 
-    public Long getId() {
+    @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER)
+    private List<UsuarioPermiso> usuarioPermisos = new ArrayList<>();
+
+    // getter
+    public List<String> getPermisos() {
+        return usuarioPermisos.stream()
+            .map(up -> up.getPermiso().getNombre())
+            .collect(Collectors.toList());
+    }
+
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -123,4 +138,7 @@ public class User {
     public void setLastLogin(LocalDateTime lastLogin) {
         this.lastLogin = lastLogin;
     }
+
+    public boolean isActivo() { return activo; }
+public void setActivo(boolean activo) { this.activo = activo; }
 }

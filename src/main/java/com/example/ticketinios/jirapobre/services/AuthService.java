@@ -1,13 +1,20 @@
 package com.example.ticketinios.jirapobre.services;
 
+import com.example.ticketinios.jirapobre.dto.LoginRequest;
 import com.example.ticketinios.jirapobre.dto.RegisterRequest;
+import com.example.ticketinios.jirapobre.dto.UsuarioDTO;
 import com.example.ticketinios.jirapobre.models.User; 
 import com.example.ticketinios.jirapobre.repositories.UserRepository;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
@@ -45,4 +52,32 @@ public class AuthService {
 
         return userRepository.save(user);
     }
+
+    public UsuarioDTO login(LoginRequest request, HttpServletRequest httpRequest) {
+    User user = userRepository.findByEmail(request.email())
+        .orElseThrow(() -> new IllegalStateException("Credenciales inválidas."));
+
+    if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+        throw new IllegalStateException("Credenciales inválidas.");
+    }
+
+    user.setLastLogin(LocalDateTime.now());
+    userRepository.save(user);
+
+    HttpSession session = httpRequest.getSession(true);
+    session.setAttribute("userId", user.getId());
+    session.setAttribute("email", user.getEmail());
+
+    // Mapear a DTO en lugar de retornar el User directamente
+    return UsuarioDTO.builder()
+        .id(user.getId())
+        .nombreCompleto(user.getNombreCompleto())
+        .username(user.getUsuario())
+        .email(user.getEmail())
+        .telefono(user.getTelefono())
+        .fechaNacimiento(user.getFechaNacimiento())
+        .creadoEn(user.getCreadoEn())
+        .permisos(user.getPermisos())
+        .build();
+}
 }
