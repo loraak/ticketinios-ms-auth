@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,12 +27,45 @@ public class AuthController {
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<ApiResponse<UsuarioDTO>> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         try {
             User newUser = authService.register(registerRequest);
-            return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+
+            UsuarioDTO usuarioDTO = UsuarioDTO.builder()
+                .id(newUser.getId())
+                .nombreCompleto(newUser.getNombreCompleto())
+                .username(newUser.getUsuario())
+                .email(newUser.getEmail())
+                .telefono(newUser.getTelefono())
+                .fechaNacimiento(newUser.getFechaNacimiento())
+                .creadoEn(newUser.getCreadoEn())
+                .permisos(newUser.getPermisos())
+                .build();
+
+            ApiResponse<UsuarioDTO> response = ApiResponse.<UsuarioDTO>builder()
+                .statusCode(201)
+                .opCode("CREATED")
+                .message("Usuario registrado exitosamente")
+                .errors(List.of())
+                .data(List.of(usuarioDTO))
+                .total(1)
+                .timestamp(Instant.now())
+                .build();
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
         } catch (IllegalStateException e) {
-            return new ResponseEntity<>(Map.of("message", e.getMessage()), HttpStatus.BAD_REQUEST);
+            ApiResponse<UsuarioDTO> error = ApiResponse.<UsuarioDTO>builder()
+                .statusCode(409)
+                .opCode("CONFLICT")
+                .message(e.getMessage())
+                .errors(List.of(e.getMessage()))
+                .data(List.of())
+                .total(0)
+                .timestamp(Instant.now())
+                .build();
+
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
         }
     }
 

@@ -10,13 +10,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
 @Service
 public class AuthService {
@@ -64,11 +68,23 @@ public class AuthService {
     user.setLastLogin(LocalDateTime.now());
     userRepository.save(user);
 
+    // Registrar en SecurityContext
+    UsernamePasswordAuthenticationToken authToken =
+        new UsernamePasswordAuthenticationToken(
+            user.getEmail(),
+            null,
+            List.of()
+        );
+    SecurityContextHolder.getContext().setAuthentication(authToken);
+
+    // Una sola sesión con ambos atributos
     HttpSession session = httpRequest.getSession(true);
     session.setAttribute("userId", user.getId());
     session.setAttribute("email", user.getEmail());
-
-    // Mapear a DTO en lugar de retornar el User directamente
+    session.setAttribute(
+        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        SecurityContextHolder.getContext()
+    );
     return UsuarioDTO.builder()
         .id(user.getId())
         .nombreCompleto(user.getNombreCompleto())

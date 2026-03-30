@@ -1,5 +1,6 @@
 package com.example.ticketinios.jirapobre.controllers;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -20,6 +21,7 @@ import com.example.ticketinios.jirapobre.services.UsuarioService;
 
 import jakarta.validation.Valid;
 
+import com.example.ticketinios.jirapobre.dto.ApiResponse;
 import com.example.ticketinios.jirapobre.dto.EditarUsuarioRequest;
 import com.example.ticketinios.jirapobre.dto.RegisterRequest;
 import com.example.ticketinios.jirapobre.dto.UsuarioAdminDTO;
@@ -31,47 +33,120 @@ public class UsuarioController {
     @Autowired private UsuarioService usuarioService;
 
     @GetMapping
-    public ResponseEntity<List<UsuarioAdminDTO>> listar() {
-        return ResponseEntity.ok(usuarioService.listarTodos());
+    public ResponseEntity<ApiResponse<UsuarioAdminDTO>> listar() {
+        List<UsuarioAdminDTO> lista = usuarioService.listarTodos();
+        return ResponseEntity.ok(ApiResponse.<UsuarioAdminDTO>builder()
+            .statusCode(200)
+            .opCode("OK")
+            .message("Usuarios obtenidos exitosamente")
+            .errors(List.of())
+            .data(lista)
+            .total(lista.size())
+            .timestamp(Instant.now())
+            .build());
     }
 
     @PostMapping
-    public ResponseEntity<?> crear(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<ApiResponse<UsuarioAdminDTO>> crear(@Valid @RequestBody RegisterRequest request) {
         try {
-            return new ResponseEntity<>(usuarioService.crear(request), HttpStatus.CREATED);
+            UsuarioAdminDTO creado = usuarioService.crear(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.<UsuarioAdminDTO>builder()
+                .statusCode(201)
+                .opCode("CREATED")
+                .message("Usuario creado exitosamente")
+                .errors(List.of())
+                .data(List.of(creado))
+                .total(1)
+                .timestamp(Instant.now())
+                .build());
         } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.<UsuarioAdminDTO>builder()
+                .statusCode(409)
+                .opCode("CONFLICT")
+                .message(e.getMessage())
+                .errors(List.of(e.getMessage()))
+                .data(List.of())
+                .total(0)
+                .timestamp(Instant.now())
+                .build());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> editar(@PathVariable UUID id,
-                                    @Valid @RequestBody EditarUsuarioRequest request) {
+    public ResponseEntity<ApiResponse<UsuarioAdminDTO>> editar(@PathVariable UUID id, @Valid @RequestBody EditarUsuarioRequest request) {
         try {
-            return ResponseEntity.ok(usuarioService.editar(id, request));
+            UsuarioAdminDTO editado = usuarioService.editar(id, request);
+            return ResponseEntity.ok(ApiResponse.<UsuarioAdminDTO>builder()
+                .statusCode(200)
+                .opCode("OK")
+                .message("Usuario actualizado exitosamente")
+                .errors(List.of())
+                .data(List.of(editado))
+                .total(1)
+                .timestamp(Instant.now())
+                .build());
         } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponse.<UsuarioAdminDTO>builder()
+                .statusCode(400)
+                .opCode("BAD_REQUEST")
+                .message(e.getMessage())
+                .errors(List.of(e.getMessage()))
+                .data(List.of())
+                .total(0)
+                .timestamp(Instant.now())
+                .build());
         }
     }
 
     @PatchMapping("/{id}/baja")
-    public ResponseEntity<?> darDeBaja(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Void>> darDeBaja(@PathVariable UUID id) {
         try {
             usuarioService.darDeBaja(id);
-            return ResponseEntity.ok(Map.of("message", "Usuario dado de baja."));
+            return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .statusCode(200)
+                .opCode("OK")
+                .message("Usuario dado de baja exitosamente")
+                .errors(List.of())
+                .data(List.of())
+                .total(0)
+                .timestamp(Instant.now())
+                .build());
         } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponse.<Void>builder()
+                .statusCode(400)
+                .opCode("BAD_REQUEST")
+                .message(e.getMessage())
+                .errors(List.of(e.getMessage()))
+                .data(List.of())
+                .total(0)
+                .timestamp(Instant.now())
+                .build());
         }
     }
 
     @PutMapping("/{id}/permisos")
-    public ResponseEntity<?> actualizarPermisos(@PathVariable UUID id,
-                                                @RequestBody List<String> permisos) {
+    public ResponseEntity<ApiResponse<Void>> actualizarPermisos(@PathVariable UUID id, @RequestBody List<String> permisos) {
         try {
             usuarioService.actualizarPermisos(id, permisos);
-            return ResponseEntity.ok(Map.of("message", "Permisos actualizados."));
+            return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .statusCode(200)
+                .opCode("OK")
+                .message("Permisos actualizados exitosamente")
+                .errors(List.of())
+                .data(List.of())
+                .total(0)
+                .timestamp(Instant.now())
+                .build());
         } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+            return ResponseEntity.badRequest().body(ApiResponse.<Void>builder()
+                .statusCode(400)
+                .opCode("BAD_REQUEST")
+                .message(e.getMessage())
+                .errors(List.of(e.getMessage()))
+                .data(List.of())
+                .total(0)
+                .timestamp(Instant.now())
+                .build());
         }
     }
 }
