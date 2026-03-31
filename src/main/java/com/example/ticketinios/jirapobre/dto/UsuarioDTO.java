@@ -6,6 +6,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -17,6 +19,7 @@ public class UsuarioDTO {
     private String username;
     private String email;
     private String telefono;
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate fechaNacimiento;
     private Instant lastLogin;
     private LocalDateTime creadoEn;

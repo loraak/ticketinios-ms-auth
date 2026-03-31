@@ -49,8 +49,7 @@ public class UsuarioService {
         user.setPasswordHash(passwordEncoder.encode(request.password()));
         user.setDireccion(request.direccion());
         user.setTelefono(request.telefono());
-        user.setFechaNacimiento(LocalDate.parse(request.fechaNacimiento(),
-            DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        user.setFechaNacimiento(LocalDate.parse(request.fechaNacimiento()));
         user.setActivo(true);
 
         User saved = userRepository.save(user);
