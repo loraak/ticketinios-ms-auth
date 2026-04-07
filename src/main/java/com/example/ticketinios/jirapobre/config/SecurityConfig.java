@@ -33,7 +33,7 @@ public class SecurityConfig {
                 .securityContextRepository(new HttpSessionSecurityContextRepository()) 
             )
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/**", "/v3/api-docs", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/api/usuarios/**").authenticated() 
                 .anyRequest().authenticated()
             );
@@ -44,7 +44,7 @@ public class SecurityConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:4200"));
+        config.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:3000"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("*"));
 
