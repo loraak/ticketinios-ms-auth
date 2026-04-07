@@ -32,6 +32,7 @@ public class UsuarioController {
 
     @Autowired private UsuarioService usuarioService;
 
+    /* 
     @GetMapping
     public ResponseEntity<ApiResponse<UsuarioAdminDTO>> listar() {
         List<UsuarioAdminDTO> lista = usuarioService.listarTodos();
@@ -149,4 +150,5 @@ public class UsuarioController {
                 .build());
         }
     }
+*/
 }

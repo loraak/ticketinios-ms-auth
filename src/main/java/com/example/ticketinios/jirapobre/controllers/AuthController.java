@@ -15,54 +15,36 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:4200") 
 public class AuthController {
 
     @Autowired
     private AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<UsuarioDTO>> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> registerUser(
+            @Valid @RequestBody RegisterRequest registerRequest) {
         try {
-            User newUser = authService.register(registerRequest);
+            authService.register(registerRequest);
 
-            UsuarioDTO usuarioDTO = UsuarioDTO.builder()
-                .id(newUser.getId())
-                .nombreCompleto(newUser.getNombreCompleto())
-                .username(newUser.getUsuario())
-                .email(newUser.getEmail())
-                .telefono(newUser.getTelefono())
-                .fechaNacimiento(newUser.getFechaNacimiento())
-                .creadoEn(newUser.getCreadoEn())
-                .permisos(newUser.getPermisos())
-                .build();
-
-            ApiResponse<UsuarioDTO> response = ApiResponse.<UsuarioDTO>builder()
+            ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
                 .statusCode(201)
-                .opCode("CREATED")
-                .message("Usuario registrado exitosamente")
-                .errors(List.of())
-                .data(List.of(usuarioDTO))
-                .total(1)
-                .timestamp(Instant.now())
+                .intOpCode("MS-AUTH-REGISTER-CREATED")
+                .data(List.of(Map.of("message", "Usuario registrado exitosamente")))
                 .build();
 
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
         } catch (IllegalStateException e) {
-            ApiResponse<UsuarioDTO> error = ApiResponse.<UsuarioDTO>builder()
+
+            ApiResponse<Map<String, String>> error = ApiResponse.<Map<String, String>>builder()
                 .statusCode(409)
-                .opCode("CONFLICT")
-                .message(e.getMessage())
-                .errors(List.of(e.getMessage()))
-                .data(List.of())
-                .total(0)
-                .timestamp(Instant.now())
+                .intOpCode("MS-AUTH-REGISTER-CONFLICT")
+                .data(List.of(Map.of("message", e.getMessage())))
                 .build();
 
             return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
@@ -82,11 +64,8 @@ public class AuthController {
 
             ApiResponse<LoginResponse> response = ApiResponse.<LoginResponse>builder()
                 .statusCode(200)
-                .opCode("OK")
-                .message("Login exitoso")
+                .intOpCode("MS-AUTH-LOGIN-SUCCESS")
                 .data(List.of(loginResponse))
-                .total(1)
-                .timestamp(Instant.now())
                 .build();
 
             return ResponseEntity.ok(response);
@@ -94,12 +73,8 @@ public class AuthController {
         } catch (IllegalStateException e) {
             ApiResponse<LoginResponse> error = ApiResponse.<LoginResponse>builder()
                 .statusCode(401)
-                .opCode("UNAUTHORIZED")
-                .message(e.getMessage())
-                .errors(List.of(e.getMessage())) 
+                .intOpCode("MS-AUTH-LOGIN-UNAUTHORIZED")
                 .data(List.of())
-                .total(0)
-                .timestamp(Instant.now())
                 .build();
 
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);

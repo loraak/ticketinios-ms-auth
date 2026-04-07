@@ -29,6 +29,9 @@ public class AuthService {
     private UserRepository userRepository;
 
     @Autowired
+    private JwtService jwtService;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     public User register(RegisterRequest request) {
@@ -65,6 +68,8 @@ public class AuthService {
         throw new IllegalStateException("Credenciales inválidas.");
     }
 
+    String token = jwtService.generateToken(user);
+
     user.setLastLogin(LocalDateTime.now());
     userRepository.save(user);
 
@@ -94,6 +99,7 @@ public class AuthService {
         .fechaNacimiento(user.getFechaNacimiento())
         .creadoEn(user.getCreadoEn())
         .permisos(user.getPermisos())
+        .token(token)
         .build();
 }
 }

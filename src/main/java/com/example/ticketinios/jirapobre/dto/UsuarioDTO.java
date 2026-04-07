@@ -24,4 +24,6 @@ public class UsuarioDTO {
     private Instant lastLogin;
     private LocalDateTime creadoEn;
     private List<String> permisos;
+    private String token;
+    private String message; 
 }
