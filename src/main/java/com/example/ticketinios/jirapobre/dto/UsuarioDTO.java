@@ -19,6 +19,8 @@ public class UsuarioDTO {
     private String username;
     private String email;
     private String telefono;
+    private String direccion; 
+    private Boolean activo; 
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate fechaNacimiento;
     private Instant lastLogin;

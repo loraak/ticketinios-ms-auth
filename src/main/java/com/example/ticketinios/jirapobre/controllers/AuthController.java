@@ -5,7 +5,6 @@ import com.example.ticketinios.jirapobre.dto.LoginRequest;
 import com.example.ticketinios.jirapobre.dto.LoginResponse;
 import com.example.ticketinios.jirapobre.dto.RegisterRequest;
 import com.example.ticketinios.jirapobre.dto.UsuarioDTO;
-import com.example.ticketinios.jirapobre.models.User;
 import com.example.ticketinios.jirapobre.services.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +26,32 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Map<String, String>>> registerUser(
+            @Valid @RequestBody RegisterRequest registerRequest) {
+        try {
+            authService.register(registerRequest);
+
+            ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
+                .statusCode(201)
+                .intOpCode("MS-AUTH-REGISTER-CREATED")
+                .data(List.of(Map.of("message", "Usuario registrado exitosamente")))
+                .build();
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+        } catch (IllegalStateException e) {
+
+            ApiResponse<Map<String, String>> error = ApiResponse.<Map<String, String>>builder()
+                .statusCode(409)
+                .intOpCode("MS-AUTH-REGISTER-CONFLICT")
+                .data(List.of(Map.of("message", e.getMessage())))
+                .build();
+
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+        }
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<ApiResponse<Map<String, String>>> updateUser(
             @Valid @RequestBody RegisterRequest registerRequest) {
         try {
             authService.register(registerRequest);

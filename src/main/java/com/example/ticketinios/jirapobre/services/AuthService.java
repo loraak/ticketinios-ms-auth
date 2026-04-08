@@ -73,7 +73,6 @@ public class AuthService {
     user.setLastLogin(LocalDateTime.now());
     userRepository.save(user);
 
-    // Registrar en SecurityContext
     UsernamePasswordAuthenticationToken authToken =
         new UsernamePasswordAuthenticationToken(
             user.getEmail(),
@@ -82,7 +81,6 @@ public class AuthService {
         );
     SecurityContextHolder.getContext().setAuthentication(authToken);
 
-    // Una sola sesión con ambos atributos
     HttpSession session = httpRequest.getSession(true);
     session.setAttribute("userId", user.getId());
     session.setAttribute("email", user.getEmail());
@@ -96,6 +94,8 @@ public class AuthService {
         .username(user.getUsuario())
         .email(user.getEmail())
         .telefono(user.getTelefono())
+        .direccion(user.getDireccion())
+        .activo(user.isActivo())
         .fechaNacimiento(user.getFechaNacimiento())
         .creadoEn(user.getCreadoEn())
         .permisos(user.getPermisos())
