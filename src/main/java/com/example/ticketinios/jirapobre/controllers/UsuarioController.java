@@ -22,9 +22,7 @@ import com.example.ticketinios.jirapobre.services.UsuarioService;
 import jakarta.validation.Valid;
 
 import com.example.ticketinios.jirapobre.dto.ApiResponse;
-import com.example.ticketinios.jirapobre.dto.EditarUsuarioRequest;
 import com.example.ticketinios.jirapobre.dto.RegisterRequest;
-import com.example.ticketinios.jirapobre.dto.UsuarioAdminDTO;
 
 @RestController
 @RequestMapping("/api/usuarios")
