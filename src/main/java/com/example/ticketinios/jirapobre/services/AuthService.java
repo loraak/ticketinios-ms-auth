@@ -2,6 +2,7 @@ package com.example.ticketinios.jirapobre.services;
 
 import com.example.ticketinios.jirapobre.dto.LoginRequest;
 import com.example.ticketinios.jirapobre.dto.RegisterRequest;
+import com.example.ticketinios.jirapobre.dto.UpdateRequest;
 import com.example.ticketinios.jirapobre.dto.UsuarioDTO;
 import com.example.ticketinios.jirapobre.models.User; 
 import com.example.ticketinios.jirapobre.repositories.UserRepository;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AuthService {
@@ -61,45 +63,85 @@ public class AuthService {
     }
 
     public UsuarioDTO login(LoginRequest request, HttpServletRequest httpRequest) {
-    User user = userRepository.findByEmail(request.email())
-        .orElseThrow(() -> new IllegalStateException("Credenciales inválidas."));
+        User user = userRepository.findByEmail(request.email())
+            .orElseThrow(() -> new IllegalStateException("Credenciales inválidas."));
 
-    if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-        throw new IllegalStateException("Credenciales inválidas.");
+        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
+            throw new IllegalStateException("Credenciales inválidas.");
+        }
+
+        if (!user.isActivo()) {
+            throw new IllegalStateException("Tu cuenta ha sido dada de baja.");
+        }
+
+        String token = jwtService.generateToken(user);
+
+        user.setLastLogin(LocalDateTime.now());
+        userRepository.save(user);
+
+        UsernamePasswordAuthenticationToken authToken =
+            new UsernamePasswordAuthenticationToken(
+                user.getEmail(),
+                null,
+                List.of()
+            );
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        HttpSession session = httpRequest.getSession(true);
+        session.setAttribute("userId", user.getId());
+        session.setAttribute("email", user.getEmail());
+        session.setAttribute(
+            HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+            SecurityContextHolder.getContext()
+        );
+        return UsuarioDTO.builder()
+            .id(user.getId())
+            .nombreCompleto(user.getNombreCompleto())
+            .username(user.getUsuario())
+            .email(user.getEmail())
+            .telefono(user.getTelefono())
+            .direccion(user.getDireccion())
+            .activo(user.isActivo())
+            .fechaNacimiento(user.getFechaNacimiento())
+            .creadoEn(user.getCreadoEn())
+            .permisos(user.getPermisos())
+            .token(token)
+            .build();
     }
 
-    String token = jwtService.generateToken(user);
+    public User update(UUID id, UpdateRequest request) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new IllegalStateException("Usuario no encontrado."));
 
-    user.setLastLogin(LocalDateTime.now());
+        // Validar que el nuevo username/email no lo use OTRO usuario
+        userRepository.findByUsuario(request.usuario())
+            .filter(u -> !u.getId().equals(id))
+            .ifPresent(u -> { throw new IllegalStateException("El nombre de usuario ya está en uso."); });
+
+        userRepository.findByEmail(request.email())
+            .filter(u -> !u.getId().equals(id))
+            .ifPresent(u -> { throw new IllegalStateException("El correo electrónico ya está registrado."); });
+
+        user.setNombreCompleto(request.nombreCompleto());
+        user.setUsuario(request.usuario());
+        user.setEmail(request.email());
+        user.setDireccion(request.direccion());
+        user.setTelefono(request.telefono());
+
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            user.setFechaNacimiento(LocalDate.parse(request.fechaNacimiento(), formatter));
+        } catch (DateTimeParseException e) {
+            throw new IllegalStateException("Formato de fecha inválido. Use dd/MM/yyyy.");
+        }
+
+        return userRepository.save(user);
+    }
+
+    public void darDeBaja(UUID id) {
+    User user = userRepository.findById(id)
+        .orElseThrow(() -> new IllegalStateException("Usuario no encontrado."));
+    user.setActivo(false);
     userRepository.save(user);
-
-    UsernamePasswordAuthenticationToken authToken =
-        new UsernamePasswordAuthenticationToken(
-            user.getEmail(),
-            null,
-            List.of()
-        );
-    SecurityContextHolder.getContext().setAuthentication(authToken);
-
-    HttpSession session = httpRequest.getSession(true);
-    session.setAttribute("userId", user.getId());
-    session.setAttribute("email", user.getEmail());
-    session.setAttribute(
-        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-        SecurityContextHolder.getContext()
-    );
-    return UsuarioDTO.builder()
-        .id(user.getId())
-        .nombreCompleto(user.getNombreCompleto())
-        .username(user.getUsuario())
-        .email(user.getEmail())
-        .telefono(user.getTelefono())
-        .direccion(user.getDireccion())
-        .activo(user.isActivo())
-        .fechaNacimiento(user.getFechaNacimiento())
-        .creadoEn(user.getCreadoEn())
-        .permisos(user.getPermisos())
-        .token(token)
-        .build();
 }
 }
