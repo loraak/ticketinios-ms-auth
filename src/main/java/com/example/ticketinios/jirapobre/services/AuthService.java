@@ -4,8 +4,12 @@ import com.example.ticketinios.jirapobre.dto.LoginRequest;
 import com.example.ticketinios.jirapobre.dto.RegisterRequest;
 import com.example.ticketinios.jirapobre.dto.UpdateRequest;
 import com.example.ticketinios.jirapobre.dto.UsuarioDTO;
-import com.example.ticketinios.jirapobre.models.User; 
+import com.example.ticketinios.jirapobre.models.Permiso;
+import com.example.ticketinios.jirapobre.models.User;
+import com.example.ticketinios.jirapobre.models.UsuarioPermiso;
+import com.example.ticketinios.jirapobre.repositories.PermisoRepository;
 import com.example.ticketinios.jirapobre.repositories.UserRepository;
+import com.example.ticketinios.jirapobre.repositories.UsuarioPermisoRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -23,6 +27,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
@@ -35,6 +40,36 @@ public class AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private PermisoRepository permisoRepository;
+
+    @Autowired
+    private UsuarioPermisoRepository usuarioPermisoRepository;
+
+    private static final List<String> PERMISOS_DEFAULT = List.of(
+        "grupos:ver_menu",
+        "grupos:ver",
+        "grupos:verespecifico",
+        "perfil:ver_menu",
+        "perfil:ver",
+        "perfil:editar",
+        "perfil:eliminar"
+    );
+
+    private void asignarPermisos(User user, List<String> nombresPermisos) {
+        List<Permiso> permisos = permisoRepository.findByNombreIn(nombresPermisos);
+
+        List<UsuarioPermiso> usuarioPermisos = permisos.stream().map(permiso -> {
+            UsuarioPermiso up = new UsuarioPermiso();
+            up.setUsuario(user);
+            up.setPermiso(permiso);
+            up.setAsignadoEn(LocalDateTime.now());
+            return up;
+        }).collect(Collectors.toList());
+
+        usuarioPermisoRepository.saveAll(usuarioPermisos);
+    }
 
     public User register(RegisterRequest request) {
         if (userRepository.findByUsuario(request.usuario()).isPresent()) {
@@ -59,7 +94,9 @@ public class AuthService {
             throw new IllegalStateException("Formato de fecha de nacimiento inválido. Use dd/MM/yyyy.");
         }
 
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        asignarPermisos(savedUser, PERMISOS_DEFAULT);
+        return savedUser;
     }
 
     public UsuarioDTO login(LoginRequest request, HttpServletRequest httpRequest) {

@@ -56,7 +56,6 @@ public class User {
     @OneToMany(mappedBy = "usuario", fetch = FetchType.EAGER)
     private List<UsuarioPermiso> usuarioPermisos = new ArrayList<>();
 
-    // getter
     public List<String> getPermisos() {
         return usuarioPermisos.stream()
             .map(up -> up.getPermiso().getNombre())
@@ -144,5 +143,5 @@ public class User {
     }
 
     public boolean isActivo() { return activo; }
-public void setActivo(boolean activo) { this.activo = activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
 }
