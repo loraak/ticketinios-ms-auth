@@ -14,9 +14,7 @@ import org.springframework.stereotype.Service;
 import com.example.ticketinios.jirapobre.repositories.PermisoRepository;
 import com.example.ticketinios.jirapobre.repositories.UserRepository;
 import com.example.ticketinios.jirapobre.repositories.UsuarioPermisoRepository;
-import com.example.ticketinios.jirapobre.dto.EditarUsuarioRequest;
 import com.example.ticketinios.jirapobre.dto.RegisterRequest;
-import com.example.ticketinios.jirapobre.dto.UsuarioAdminDTO;
 import com.example.ticketinios.jirapobre.models.User;
 import com.example.ticketinios.jirapobre.models.UsuarioPermiso;
 
@@ -28,7 +26,7 @@ public class UsuarioService {
     @Autowired private UsuarioPermisoRepository usuarioPermisoRepository;
     @Autowired private PasswordEncoder passwordEncoder;
 
-    // Listar todos
+    /* Listar todos
     public List<UsuarioAdminDTO> listarTodos() {
         return userRepository.findAll().stream()
             .map(u -> new UsuarioAdminDTO(
@@ -100,4 +98,5 @@ public class UsuarioService {
             });
         });
     }
+    */
 }
