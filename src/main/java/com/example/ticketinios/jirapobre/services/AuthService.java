@@ -181,4 +181,9 @@ public class AuthService {
     user.setActivo(false);
     userRepository.save(user);
 }
+
+    public User findById(UUID id) {
+        return userRepository.findById(id)
+            .orElseThrow(() -> new IllegalStateException("Usuario no encontrado"));
+    }
 }

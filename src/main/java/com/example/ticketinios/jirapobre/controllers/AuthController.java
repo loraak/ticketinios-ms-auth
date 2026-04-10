@@ -56,6 +56,10 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LoginResponse>> loginUser(
             @Valid @RequestBody LoginRequest loginRequest,
             HttpServletRequest request) {
+            System.out.println("=== HEADERS RECIBIDOS ===");
+            request.getHeaderNames().asIterator()
+                .forEachRemaining(h -> System.out.println(h + ": " + request.getHeader(h)));
+            System.out.println("=========================");
         try {
             UsuarioDTO usuarioDTO = authService.login(loginRequest, request);
 
