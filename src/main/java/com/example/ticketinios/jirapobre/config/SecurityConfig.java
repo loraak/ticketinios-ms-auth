@@ -1,4 +1,3 @@
-// ruta: src/main/java/com/example/ticketinios/jirapobre/config/SecurityConfig.java
 package com.example.ticketinios.jirapobre.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -14,9 +13,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import jakarta.servlet.http.HttpServletResponse;
-
 
 @Configuration
 @EnableWebSecurity
@@ -39,23 +35,11 @@ public class SecurityConfig {
                     "/v3/api-docs",
                     "/v3/api-docs/**"
                 ).permitAll()
+                .requestMatchers(request ->
+                    request.getHeader("X-Gateway-Token") != null
+                ).permitAll()
                 .anyRequest().authenticated()
-            )
-            // Agrega esto temporalmente
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint((request, response, authException) -> {
-                    System.out.println("=== AUTH ENTRY POINT ===");
-                    System.out.println("URI: " + request.getRequestURI());
-                    System.out.println("Exception: " + authException.getMessage());
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                })
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    System.out.println("=== ACCESS DENIED ===");
-                    System.out.println("URI: " + request.getRequestURI());
-                    System.out.println("Exception: " + accessDeniedException.getMessage());
-                    response.sendError(HttpServletResponse.SC_FORBIDDEN);
-                })
-            );
+            ); 
         return http.build();
     }
 

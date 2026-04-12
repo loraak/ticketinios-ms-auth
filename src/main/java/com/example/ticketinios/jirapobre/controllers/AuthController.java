@@ -26,6 +26,15 @@ public class AuthController {
     @Autowired
     private AuthService authService;
 
+    @GetMapping("/health")
+    public ResponseEntity<ApiResponse<Map<String, String>>> healthCheck() {
+        return ResponseEntity.ok(ApiResponse.<Map<String, String>>builder()
+                .statusCode(200)
+                .intOpCode("MS-AUTH-HEALTH-OK")
+                .data(List.of(Map.of("status", "ok", "service", "auth")))
+                .build());
+    }
+
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<Map<String, String>>> registerUser(
             @Valid @RequestBody RegisterRequest registerRequest) {
@@ -91,54 +100,48 @@ public class AuthController {
         }
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/update") 
     public ResponseEntity<ApiResponse<Map<String, String>>> updateUser(
-            @PathVariable UUID id,
-            @Valid @RequestBody UpdateRequest updateRequest) {
+        @RequestHeader("X-User-Id") String usuarioId,
+        @Valid @RequestBody UpdateRequest request) {
         try {
-            authService.update(id, updateRequest);
+            authService.update(UUID.fromString(usuarioId), request); // ← solo una vez
 
-            ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
+            return ResponseEntity.ok(ApiResponse.<Map<String, String>>builder()
                 .statusCode(200)
                 .intOpCode("MS-AUTH-UPDATE-OK")
                 .data(List.of(Map.of("message", "Usuario actualizado exitosamente")))
-                .build();
-
-            return ResponseEntity.ok(response);
+                .build());
 
         } catch (IllegalStateException e) {
-
-            ApiResponse<Map<String, String>> error = ApiResponse.<Map<String, String>>builder()
-                .statusCode(409)
-                .intOpCode("MS-AUTH-UPDATE-CONFLICT")
-                .data(List.of(Map.of("message", e.getMessage())))
-                .build();
-
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                ApiResponse.<Map<String, String>>builder()
+                    .statusCode(409)
+                    .intOpCode("MS-AUTH-UPDATE-CONFLICT")
+                    .data(List.of(Map.of("message", e.getMessage())))
+                    .build());
         }
     }
 
-    @PatchMapping("/baja/{id}")
-    public ResponseEntity<ApiResponse<Map<String, String>>> darDeBaja(@PathVariable UUID id) {
+    @PatchMapping("/baja")
+    public ResponseEntity<ApiResponse<Map<String, String>>> darDeBaja(
+            @RequestHeader("X-User-Id") String usuarioId) {
         try {
-            authService.darDeBaja(id);
+            authService.darDeBaja(UUID.fromString(usuarioId));
 
-            ApiResponse<Map<String, String>> response = ApiResponse.<Map<String, String>>builder()
+            return ResponseEntity.ok(ApiResponse.<Map<String, String>>builder()
                 .statusCode(200)
                 .intOpCode("MS-AUTH-BAJA-OK")
                 .data(List.of(Map.of("message", "Usuario dado de baja exitosamente")))
-                .build();
-
-            return ResponseEntity.ok(response);
+                .build());
 
         } catch (IllegalStateException e) {
-            ApiResponse<Map<String, String>> error = ApiResponse.<Map<String, String>>builder()
-                .statusCode(404)
-                .intOpCode("MS-AUTH-BAJA-NOT-FOUND")
-                .data(List.of(Map.of("message", e.getMessage())))
-                .build();
-
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                ApiResponse.<Map<String, String>>builder()
+                    .statusCode(404)
+                    .intOpCode("MS-AUTH-BAJA-NOT-FOUND")
+                    .data(List.of(Map.of("message", e.getMessage())))
+                    .build());
         }
     }
 }

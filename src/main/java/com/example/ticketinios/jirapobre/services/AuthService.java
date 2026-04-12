@@ -50,11 +50,21 @@ public class AuthService {
     private static final List<String> PERMISOS_DEFAULT = List.of(
         "grupos:ver_menu",
         "grupos:ver",
-        "grupos:verespecifico",
+        "grupos:ver_especifico",
+        // Le añadí crear grupo para que pueda hacer algo más que solo revisar su perfil, le agregué los demás ya que 
+        // tengo un dilema para la gestión de permisos entre grupos. ¿Cómo hacer para que el endpoint verifique también
+        // que el usuario tenga el permiso en solo un grupo? 
+        "grupos:crear",
+        "grupos:editar",
+        "grupos:eliminar",
         "perfil:ver_menu",
         "perfil:ver",
         "perfil:editar",
-        "perfil:eliminar"
+        "perfil:eliminar", 
+        "tickets:crear",
+        "tickets:editar",
+        "tickets:eliminar",
+        "tickets:comentario"
     );
 
     private void asignarPermisos(User user, List<String> nombresPermisos) {
