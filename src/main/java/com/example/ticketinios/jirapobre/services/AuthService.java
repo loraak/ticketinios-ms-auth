@@ -61,6 +61,7 @@ public class AuthService {
         "perfil:ver",
         "perfil:editar",
         "perfil:eliminar", 
+        "tickets:ver", 
         "tickets:crear",
         "tickets:editar",
         "tickets:eliminar",
